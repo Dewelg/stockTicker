@@ -35,8 +35,10 @@ public class Sever {
 
         while (true) {
             byte[] bytes = new byte[1024];
-            DatagramPacket packet = new DatagramPacket(bytes, 1024);
+            DatagramPacket packet = new DatagramPacket(bytes, 0, 1024);
             socket.receive(packet);
+            String request = new String(packet.getData(), 0 , packet.getLength());
+            System.out.println("Making a sub request for: " + request);
 
             String message = new String(packet.getData(), 0, packet.getLength());
             String symbol = message.split(" ")[0];
