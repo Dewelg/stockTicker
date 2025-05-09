@@ -8,55 +8,46 @@ import java.util.Scanner;
 
 public class Client {
     public static void main(String[] args) throws IOException{
-        //Sending stocks to sub to
-        Runnable outgoingPacket = new Runnable() {
-            DatagramSocket socket = new DatagramSocket();
+        DatagramSocket socket = new DatagramSocket();
+
+        Thread sendStock = new Thread(new Runnable() {
+
             @Override
             public void run() {
-                while (true) {
-                    try(Scanner scanner = new Scanner(System.in)){
-                        System.out.print("Enter stock: ");
+                boolean running = true;
+                Scanner scanner = new Scanner(System.in);
+                System.out.print("Enter Stock Symbol: ");
+                while (running) { 
+                    try {
                         
+                        InetAddress address = InetAddress.getLocalHost();
+            
                         String stock = scanner.nextLine();
-                        DatagramPacket outgoing = new DatagramPacket(stock.getBytes(), stock.length(), InetAddress.getLocalHost(), 12345);
-                        socket.send(outgoing);
-                        if(scanner.nextLine() == "Quit"){
-                            break;
+                        byte[] buffer = stock.getBytes();
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, 12345);
+                        
+                        socket.send(packet);
+
+                        if(scanner.next().equalsIgnoreCase("Quit")){
+                            running = false;
+                            String quit = "Quit";
+                            byte[] bufferEnd = quit.getBytes();
+                            DatagramPacket endPacket = new DatagramPacket(bufferEnd, bufferEnd.length, address, 12345);
+                            socket.send(endPacket);
                         }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
+                scanner.close();
+                socket.close();
             }
             
-        };
+        });
 
-        //To receive/listen for confimation form sever
-        Runnable incomingPacket = new Runnable() {
-            DatagramSocket socket2 = new DatagramSocket();
-            @Override
-            public void run() {
-                byte[] buffer = new byte[1024];
-                DatagramPacket incoming = new DatagramPacket(buffer, 0, 1024);
-                try {
-                    socket2.receive(incoming);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                String incomingMessage = new String(incoming.getData(), 0 , incoming.getLength());
-                System.out.println(incomingMessage);
-                    
-            }
-            
-            
-        };
-
-
-        Thread sending = new Thread(outgoingPacket);
-        Thread recieving = new Thread(incomingPacket);
-
-        sending.start();
-        recieving.start();
+        
+        sendStock.start();
 
     }
 }

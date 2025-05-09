@@ -27,13 +27,16 @@ public class Sever {
             clientSocket.send(confirmPacket);
         } catch (IOException e) {
         }
+
+        System.out.println(clientStocks);
     }
 
 
     public static void main(String[] args) throws IOException{
+        boolean receive = true;
         DatagramSocket socket = new DatagramSocket(12345);
 
-        while (true) {
+        while (receive) {
             byte[] bytes = new byte[1024];
             DatagramPacket packet = new DatagramPacket(bytes, 0, 1024);
             socket.receive(packet);
@@ -46,7 +49,18 @@ public class Sever {
             InetAddress clientAddress = packet.getAddress();
             int clientPort = packet.getPort(); 
 
-            subToStock(symbol, socket, clientAddress, clientPort);
+            
+
+            if(request.equals("Quit")){
+                receive = false;
+                subToStock(symbol, socket, clientAddress, clientPort);
+            }
+
+      
+
+            
+
+            
         }
     }
 
